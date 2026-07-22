@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
@@ -67,6 +68,7 @@ public class AuthenticateService {
     // =========================================================================
     // HÀM 1: XỬ LÝ ĐĂNG NHẬP CHÍNH
     // =========================================================================
+    @Transactional
     public AuthenticateResponse authenticate (AuthenticateRequest request){
         var account = accountRespository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXITS));
@@ -133,6 +135,7 @@ public class AuthenticateService {
     // =========================================================================
     // HÀM 2: XÁC THỰC OTP KHI ĐĂNG NHẬP TRÊN THIẾT BỊ MỚI
     // =========================================================================
+    @Transactional
     public AuthenticateResponse verifyOtp(VerifyOtpRequest request) {
         // 1. Tìm bản ghi OTP trong Database
         OtpVerification otpRecord = (OtpVerification) otpVerificationRespository.findByGmail(request.getEmail())
@@ -140,10 +143,10 @@ public class AuthenticateService {
 
         // 2. Kiểm tra tính hợp lệ của OTP
         if (!otpRecord.getOtp().equals(request.getOtp())) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErrorCode.OTP_INCORRECT); // Đã sửa
         }
         if (otpRecord.getExpireTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            throw new AppException(ErrorCode.OTP_EXPIRED); // Đã sửa
         }
 
         // 3. OTP Hợp lệ -> Tìm tài khoản

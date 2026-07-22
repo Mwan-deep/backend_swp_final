@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatusCode;
 @NoArgsConstructor
 public enum ErrorCode {
     UNCATEGORIZED_EXCEPTION(9999, "Uncategoried error" , HttpStatus.INTERNAL_SERVER_ERROR),
+    OTP_INCORRECT(1005, "Mã OTP không chính xác", HttpStatus.BAD_REQUEST),
+    OTP_EXPIRED(1006, "Mã OTP đã hết hạn", HttpStatus.BAD_REQUEST),
 
     ACCOUNT_LOCKED(403, "Tài khoản của bạn đã bị khóa, inactive hoặc suspended!", HttpStatus.FORBIDDEN),    USERNAME_EXITED(2001, "User name have already existed!!" , HttpStatus.BAD_REQUEST),
     EMAIL_EXITED(2002, "Your email have already existed!!" , HttpStatus.BAD_REQUEST),
