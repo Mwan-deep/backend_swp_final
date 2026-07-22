@@ -109,22 +109,29 @@ public class AuthenticateService {
             otpVerificationRespository.save(otpVerification);
 
             // 4. Gửi Mail
-            emailService.sendGmail(
-                    account.getEmail(),
-                    " AI STUDY HUB - OTP Verification",
-                    "=====================================\n" +
-                            "        AI STUDY HUB SECURITY\n" +
-                            "=====================================\n\n" +
-                            "Hello,\n\n" +
-                            "You are trying to sign in to AI STUDY HUB.\n\n" +
-                            "Your One-Time Password (OTP) is:\n\n" +
-                            "        " + optVf + "\n\n" +
-                            "This code will expire in 5 minutes.\n\n" +
-                            "If you did NOT request this login, please ignore this email.\n\n" +
-                            "-------------------------------------\n" +
-                            "AI STUDY HUB Team\n" +
-                            "Secure Learning Platform\n" +
-                            "-------------------------------------");
+            try {
+                emailService.sendGmail(
+                        account.getEmail(),
+                        " AI STUDY HUB - OTP Verification",
+                        "=====================================\n" +
+                                "        AI STUDY HUB SECURITY\n" +
+                                "=====================================\n\n" +
+                                "Hello,\n\n" +
+                                "You are trying to sign in to AI STUDY HUB.\n\n" +
+                                "Your One-Time Password (OTP) is:\n\n" +
+                                "        " + optVf + "\n\n" +
+                                "This code will expire in 5 minutes.\n\n" +
+                                "If you did NOT request this login, please ignore this email.\n\n" +
+                                "-------------------------------------\n" +
+                                "AI STUDY HUB Team\n" +
+                                "Secure Learning Platform\n" +
+                                "-------------------------------------");
+            } catch (Exception e) {
+                // Bắt tận tay lỗi Gửi Mail và in ra Log Render
+                log.error("LỖI NGHIÊM TRỌNG KHI GỬI EMAIL OTP: {}", e.getMessage(), e);
+                throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+            }
+
 
             return AuthenticateResponse.builder()
                     .authenticated(false)
