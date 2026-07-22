@@ -79,7 +79,7 @@ public class AccountService {
             account.setRoles(roles);
             account.setCreatedAt(LocalDateTime.now());
             account.setAccountStatus("ACTIVE");
-            account.setUserName(request.getUserName());
+            account.setUserName("user_" + UUID.randomUUID().toString());
 
             account = accountRepository.save(account);
 
