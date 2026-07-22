@@ -1,0 +1,14 @@
+package AI_Study_Hub.dto.request;
+
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class ReportUpdateRequest {
+    String status; // PENDING, UNDER_REVIEW, RESOLVED
+    String internalNotes;
+}
