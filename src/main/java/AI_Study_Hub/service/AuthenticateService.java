@@ -137,19 +137,39 @@ public class AuthenticateService {
     // =========================================================================
     @Transactional
     public AuthenticateResponse verifyOtp(VerifyOtpRequest request) {
-        // 1. Tìm bản ghi OTP trong Database
+
+        // --- 1. GIĂNG LƯỚI BẮT LỖI TỪ FRONTEND ---
+        log.info("=== KIỂM TRA ĐẦU VÀO TỪ FRONTEND ===");
+        log.info("Email nhận được: {}", request.getEmail());
+        log.info("OTP nhận được: {}", request.getOtp());
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            log.error("LỖI CHÍ MẠNG: Frontend không gửi email về Backend!");
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+        // --- 2. TÌM BẢN GHI TRONG DATABASE ---
+        // Đã thêm lại (OtpVerification) để ép kiểu cứng
         OtpVerification otpRecord = (OtpVerification) otpVerificationRespository.findByGmail(request.getEmail())
-                .orElseThrow(() -> new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION));
+                .orElseThrow(() -> {
+                    log.error("LỖI: Không tìm thấy OTP trong Database cho email: {}", request.getEmail());
+                    return new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+                });
 
-        // 2. Kiểm tra tính hợp lệ của OTP
+        // --- 3. KIỂM TRA TÍNH HỢP LỆ ---
         if (!otpRecord.getOtp().equals(request.getOtp())) {
-            throw new AppException(ErrorCode.OTP_INCORRECT); // Đã sửa
-        }
-        if (otpRecord.getExpireTime().isBefore(LocalDateTime.now())) {
-            throw new AppException(ErrorCode.OTP_EXPIRED); // Đã sửa
+            log.error("LỖI: OTP nhập sai. Trong DB là: {}, Frontend gửi là: {}", otpRecord.getOtp(), request.getOtp());
+            throw new AppException(ErrorCode.OTP_INCORRECT);
         }
 
-        // 3. OTP Hợp lệ -> Tìm tài khoản
+        if (otpRecord.getExpireTime().isBefore(LocalDateTime.now())) {
+            log.error("LỖI: OTP đã hết hạn. Giờ hết hạn: {}, Giờ hiện tại: {}", otpRecord.getExpireTime(), LocalDateTime.now());
+            throw new AppException(ErrorCode.OTP_EXPIRED);
+        }
+
+        log.info("=> OTP HOÀN TOÀN HỢP LỆ!");
+
+        // 4. OTP Hợp lệ -> Tìm tài khoản
         Account account = accountRespository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.EMAIL_NOT_EXITS));
 
@@ -159,7 +179,7 @@ public class AuthenticateService {
             throw new AppException(ErrorCode.ACCOUNT_LOCKED);
         }
 
-        // 4. Lưu thiết bị này thành thiết bị tin cậy (Trusted Device)
+        // 5. Lưu thiết bị này thành thiết bị tin cậy (Trusted Device)
         Device device = deviceRepository.findByDeviceId(request.getDeviceId())
                 .orElse(new Device());
         device.setDeviceId(request.getDeviceId());
@@ -167,10 +187,10 @@ public class AuthenticateService {
         device.setAccount(account);
         deviceRepository.save(device);
 
-        // 5. Xóa mã OTP để tránh tái sử dụng
+        // 6. Xóa mã OTP để tránh tái sử dụng
         otpVerificationRespository.delete(otpRecord);
 
-        // 6. Cấp phát Token mới cho người dùng
+        // 7. Cấp phát Token mới cho người dùng
         String token = generateToken(account);
         return AuthenticateResponse.builder()
                 .token(token)
