@@ -43,6 +43,8 @@ public class GoogleSingInHandler implements AuthenticationSuccessHandler {
         this.authenticateService = authenticateService;
     }
 
+    // ... (Các phần import và Constructor ở trên giữ nguyên) ...
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
@@ -68,8 +70,8 @@ public class GoogleSingInHandler implements AuthenticationSuccessHandler {
             if (account.getAccountStatus() != null &&
                     ("INACTIVE".equalsIgnoreCase(account.getAccountStatus()) || "SUSPENDED".equalsIgnoreCase(account.getAccountStatus()))) {
 
-                // Nếu bị khóa, KHÔNG cấp token. Đá về trang login kèm mã lỗi trên URL
-                response.sendRedirect("http://localhost:5173/login?error=account_locked");
+                // ĐÃ SỬA: Đá về trang login Vercel kèm mã lỗi trên URL
+                response.sendRedirect("https://frontend-swp-final.vercel.app/login?error=account_locked");
                 return; // Ngắt luồng thực thi ngay lập tức!
             }
 
@@ -100,10 +102,11 @@ public class GoogleSingInHandler implements AuthenticationSuccessHandler {
         // 2. TẠO TOKEN TỪ ACCOUNT (Chỉ chạy đến đây nếu tài khoản ACTIVE)
         String token = authenticateService.generateToken(account);
 
-        // 3. CHUYỂN HƯỚNG VỀ FRONTEND VÀ GẮN TOKEN LÊN URL
-        response.sendRedirect("http://localhost:5173/login?token=" + token);
+        // 3. ĐÃ SỬA: CHUYỂN HƯỚNG VỀ FRONTEND VERCEL VÀ GẮN TOKEN LÊN URL
+        response.sendRedirect("https://frontend-swp-final.vercel.app/login?token=" + token);
     }
 
+    // ... (Phần code bên dưới giữ nguyên) ...
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException, ServletException {
         AuthenticationSuccessHandler.super.onAuthenticationSuccess(request, response, chain, authentication);
