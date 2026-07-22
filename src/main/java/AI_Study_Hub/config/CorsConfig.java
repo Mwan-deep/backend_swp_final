@@ -6,21 +6,24 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
-
 @Configuration
 public class CorsConfig {
 
     @Bean
     public CorsFilter corsFilter() {
-       CorsConfiguration corsConfiguration = new CorsConfiguration();
-       corsConfiguration.addAllowedOrigin("http://localhost:5173");
-       corsConfiguration.addAllowedHeader("*");
-       corsConfiguration.addAllowedMethod("*");
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-       UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
-       urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+        // ĐÃ SỬA: Cho phép tất cả các nguồn truy cập thay vì chỉ localhost (Dùng OriginPattern để tương thích với Credentials)
+        corsConfiguration.addAllowedOriginPattern("*");
+        corsConfiguration.addAllowedHeader("*");
+        corsConfiguration.addAllowedMethod("*");
 
-       return new CorsFilter(urlBasedCorsConfigurationSource);
+        // ĐÃ SỬA: Bắt buộc phải có để Frontend (React) có thể gửi/nhận Cookie hoặc Header Authorization chứa Token
+        corsConfiguration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = new UrlBasedCorsConfigurationSource();
+        urlBasedCorsConfigurationSource.registerCorsConfiguration("/**", corsConfiguration);
+
+        return new CorsFilter(urlBasedCorsConfigurationSource);
     }
 }
