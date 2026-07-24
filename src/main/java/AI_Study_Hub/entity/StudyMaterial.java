@@ -6,8 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+// Bổ sung 2 thư viện này
+import lombok.EqualsAndHashCode; 
+import lombok.ToString;
 import java.time.LocalDateTime;
-import java.util.List; // Thêm import List
+import java.util.List;
 
 @Entity
 @Table(name = "study_materials")
@@ -23,21 +26,28 @@ public class StudyMaterial {
     private Long materialId;
 
     // Các khóa ngoại (Foreign Keys)
+    
+    // 👇 Thêm chặn Lombok
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id")
-    // 👇 Chặn Jackson không đào vào roles/devices và bỏ qua biến ảo của LAZY
     @JsonIgnoreProperties({"roles", "devices", "passwordHash", "hibernateLazyInitializer", "handler"})
     private Account account;
 
+    // 👇 Thêm chặn Lombok
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "subject_id")
-    // 👇 Chặn Jackson không đào vào chuyên ngành
     @JsonIgnoreProperties({"specialization", "hibernateLazyInitializer", "handler"})
     private Subject subject;
 
+    // 👇 Thêm chặn Lombok
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "semester_id")
-    // 👇 Bỏ qua biến ảo của LAZY
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Semester semester;
 
@@ -74,7 +84,9 @@ public class StudyMaterial {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Thay vì dùng List, chúng ta dùng @OneToOne để khớp với MaterialContext
+    // 👇 ĐÃ THÊM LÁ CHẮN CHỐNG LẶP VÔ TẬN VỚI MATERIAL CONTEXT
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne(mappedBy = "studyMaterial", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private MaterialContext materialContext;
 
