@@ -5,9 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+// Bổ sung 2 thư viện này
+import lombok.EqualsAndHashCode; 
+import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.List; // Thêm import List
+import java.util.List;
 
 @Entity
 @Table(name = "material_contexts")
@@ -22,6 +25,9 @@ public class MaterialContext {
     @Column(name = "context_id")
     private Long contextId;
 
+    // 👇 ĐÃ THÊM LÁ CHẮN CHỐNG LẶP VÔ TẬN VỚI STUDY MATERIAL
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "material_id", nullable = false, unique = true)
     private StudyMaterial studyMaterial;
@@ -41,7 +47,9 @@ public class MaterialContext {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    // --- THÊM ĐOẠN NÀY ĐỂ HẾT BÁO ĐỎ ---
+    // 👇 THÊM VÀO ĐÂY ĐỂ AN TOÀN TUYỆT ĐỐI VỚI DANH SÁCH CÂU HỎI
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @OneToMany(mappedBy = "materialContext", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Question> questions;
 
