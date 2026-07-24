@@ -15,8 +15,8 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // Sử dụng model gemini-1.5-flash-latest (phiên bản mới nhất được hỗ trợ)
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
+    // ĐÃ SỬA: Chuyển sang model gemini-1.5-pro (Phiên bản siêu cấp, suy luận tốt nhất, hỗ trợ 2 triệu Token)
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=";
 
     public String chatWithGemini(String prompt) {
         RestTemplate restTemplate = new RestTemplate();
@@ -42,7 +42,7 @@ public class GeminiService {
             // 3. Gửi Request sang Google
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
 
-            // 4. Bóc tách JSON bằng thư viện GSON (Hỗ trợ tốt nhất cho các dịch vụ của Google)
+            // 4. Bóc tách JSON bằng thư viện GSON
             JsonObject rootObject = JsonParser.parseString(response.getBody()).getAsJsonObject();
 
             return rootObject.getAsJsonArray("candidates").get(0).getAsJsonObject()
@@ -58,7 +58,8 @@ public class GeminiService {
 
     // Hàm chuyên dụng để phân tích tài liệu ngay khi vừa Upload
     public Map<String, String> analyzeDocument(String extractedText) {
-        // Cắt bớt văn bản nếu quá dài (Gemini Flash xử lý tối ưu khoảng 20,000 từ một lúc)
+        // ĐÃ NỚI LỎNG: Vì dùng bản Pro (2 triệu token), bạn có thể nới giới hạn cắt chữ này lên cao hơn
+        // Ví dụ: từ 50000 lên 200000 hoặc bỏ luôn lệnh cắt nếu ngân sách của bạn cho phép
         String textToAnalyze = extractedText.length() > 50000 ? extractedText.substring(0, 50000) : extractedText;
 
         String prompt = "Dưới đây là nội dung của một tài liệu học tập. " +
@@ -89,7 +90,6 @@ public class GeminiService {
         return result;
     }
 
-    // THÊM HÀM MỚI NÀY VÀO DƯỚI CÙNG
     public List<String> generateDashboardSuggestions(List<String> recentActivities) {
         // Xử lý Empty State ngay từ đầu: Không gọi AI nếu không có hoạt động
         if (recentActivities == null || recentActivities.isEmpty()) {
