@@ -79,21 +79,38 @@ public class ChatService {
         // =========================================================================================
         List<StudyMaterial> allMaterials = materialRepository.findAll();
         Map<StudyMaterial, Integer> scoredMaterials = new HashMap<>();
-        String normalizedPrompt = prompt.toLowerCase();
-
-        // 4.1. Thuật toán chấm điểm (Scoring) - Tìm tài liệu khớp từ khóa
+        
+        // Loại bỏ khoảng trắng thừa và đưa về chữ thường
+        String normalizedPrompt = prompt.toLowerCase().trim();
         String[] keywords = normalizedPrompt.split("\\s+");
+
+        // 4.1. Thuật toán chấm điểm (Scoring) - Quét toàn diện từ Tên, Mô tả đến Nội dung file
         for (StudyMaterial m : allMaterials) {
             int score = 0;
             String title = (m.getTitle() != null) ? m.getTitle().toLowerCase() : "";
             String desc = (m.getDescription() != null) ? m.getDescription().toLowerCase() : "";
+            
+            // Lấy nội dung thực tế của file từ Database (BƯỚC QUAN TRỌNG ĐÃ THÊM)
+            String content = "";
+            var materialContext = materialContextRepository.findByStudyMaterial_MaterialId(m.getMaterialId());
+            if (materialContext.isPresent() && materialContext.get().getExtractedText() != null) {
+                content = materialContext.get().getExtractedText().toLowerCase();
+            }
 
+            // Ưu tiên 1: Khớp chính xác NGUYÊN CỤM TỪ người dùng tìm (Ví dụ: "tiếng nhật")
+            if (title.contains(normalizedPrompt)) score += 50;
+            if (desc.contains(normalizedPrompt)) score += 20;
+            if (content.contains(normalizedPrompt)) score += 10; // Cụm từ nằm trong nội dung file
+
+            // Ưu tiên 2: Khớp từng từ khóa lẻ
             for (String word : keywords) {
-                if (word.length() > 2) { // Bỏ qua từ ngắn (như "là", "có", "và")
-                    if (title.contains(word)) score += 3; // Khớp tiêu đề -> Trọng số cao
-                    if (desc.contains(word)) score += 1;  // Khớp mô tả -> Trọng số thấp
+                if (word.length() > 2) { // Bỏ qua từ quá ngắn
+                    if (title.contains(word)) score += 3; 
+                    if (desc.contains(word)) score += 1;  
+                    if (content.contains(word)) score += 1; // Từ khóa nằm trong nội dung file
                 }
             }
+            
             if (score > 0) {
                 scoredMaterials.put(m, score);
             }
@@ -106,10 +123,17 @@ public class ChatService {
         StringBuilder catalogBuilder = new StringBuilder();
         int count = 0;
         for (Map.Entry<StudyMaterial, Integer> entry : sortedMaterials) {
-            if (count >= 5) break; // CHỈ LẤY TOP 5 ĐỂ TIẾT KIỆM TOKEN
+            if (count >= 5) break; 
             StudyMaterial m = entry.getKey();
+            
+            // BỔ SUNG: Cung cấp thêm mô tả ngắn gọn cho AI hiểu tài liệu này nói về gì
+            String descSnippet = (m.getDescription() != null && !m.getDescription().isEmpty()) 
+                                 ? " | Mô tả: " + m.getDescription() 
+                                 : "";
+                                 
             catalogBuilder.append("- ID ").append(m.getMaterialId())
                     .append(": ").append(m.getTitle() != null ? m.getTitle() : "Tài liệu không tên")
+                    .append(descSnippet)
                     .append("\n");
             count++;
         }
@@ -118,7 +142,7 @@ public class ChatService {
         if (catalogBuilder.isEmpty()) {
             allMaterials.sort((m1, m2) -> {
                 if (m1.getCreatedAt() == null || m2.getCreatedAt() == null) return 0;
-                return m2.getCreatedAt().compareTo(m1.getCreatedAt()); // Ngày mới nhất lên đầu
+                return m2.getCreatedAt().compareTo(m1.getCreatedAt()); 
             });
             int limit = Math.min(5, allMaterials.size());
             for (int i = 0; i < limit; i++) {
