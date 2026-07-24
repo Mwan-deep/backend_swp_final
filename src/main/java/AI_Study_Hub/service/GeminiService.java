@@ -15,8 +15,8 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // ĐÃ CẬP NHẬT: Sử dụng model gemini-2.5-pro (Bản Pro ổn định, suy luận sâu, hỗ trợ 1 triệu Token)
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=";
+    // ĐÃ SỬA: Dùng thẻ tự động cập nhật của Google thay vì gọi tên phiên bản cố định
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-latest:generateContent?key=";
 
     public String chatWithGemini(String prompt) {
         RestTemplate restTemplate = new RestTemplate();
