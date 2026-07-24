@@ -15,8 +15,8 @@ public class GeminiService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    // ĐÃ SỬA: Chuyển sang model gemini-1.5-pro (Phiên bản siêu cấp, suy luận tốt nhất, hỗ trợ 2 triệu Token)
-    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=";
+    // ĐÃ CẬP NHẬT: Sử dụng model gemini-2.5-pro (Bản Pro ổn định, suy luận sâu, hỗ trợ 1 triệu Token)
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=";
 
     public String chatWithGemini(String prompt) {
         RestTemplate restTemplate = new RestTemplate();
@@ -58,8 +58,7 @@ public class GeminiService {
 
     // Hàm chuyên dụng để phân tích tài liệu ngay khi vừa Upload
     public Map<String, String> analyzeDocument(String extractedText) {
-        // ĐÃ NỚI LỎNG: Vì dùng bản Pro (2 triệu token), bạn có thể nới giới hạn cắt chữ này lên cao hơn
-        // Ví dụ: từ 50000 lên 200000 hoặc bỏ luôn lệnh cắt nếu ngân sách của bạn cho phép
+        // Tài liệu dài sẽ không còn là vấn đề với 1 triệu token của bản 2.5 Pro
         String textToAnalyze = extractedText.length() > 50000 ? extractedText.substring(0, 50000) : extractedText;
 
         String prompt = "Dưới đây là nội dung của một tài liệu học tập. " +
